@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nhịp Sống Khỏe — Quiz Hệ Tuần Hoàn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-deep:#123A63;
+    --blue-mid:#1D6FBF;
+    --blue-pale:#EAF4FC;
+    --coral:#FF6B6B;
+    --coral-pale:#FFE9E9;
+    --green:#2AA876;
+    --ink:#152238;
+    --paper:#FFFFFF;
+    --line:#D7E6F5;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(29,111,191,0.10), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(255,107,107,0.10), transparent 45%),
+      var(--blue-pale);
+    min-height:100vh;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+  .stage{
+    width:100%;
+    max-width:640px;
+  }
+
+  /* --- ECG signature bar --- */
+  .ecg-wrap{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px 16px 0 0;
+    padding:14px 20px 8px;
+    overflow:hidden;
+  }
+  .ecg-wrap svg{display:block;width:100%;height:46px;}
+  .ecg-line{
+    fill:none;
+    stroke:var(--blue-mid);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:600;
+    stroke-dashoffset:600;
+    animation:draw 2.2s linear infinite;
+  }
+  .ecg-line.pulse-good{stroke:var(--green);}
+  .ecg-line.pulse-bad{stroke:var(--coral);}
+  @keyframes draw{
+    0%{stroke-dashoffset:600;}
+    100%{stroke-dashoffset:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ecg-line{animation:none; stroke-dashoffset:0;}
+  }
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-top:none;
+    border-radius:0 0 16px 16px;
+    box-shadow:0 20px 45px -20px rgba(18,58,99,0.35);
+    padding:32px 28px;
+  }
+
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-size:12px;
+    font-weight:600;
+    color:var(--blue-mid);
+  }
+
+  /* ---------- START SCREEN ---------- */
+  #screen-start .title{
+    font-size:30px;
+    font-weight:700;
+    color:var(--blue-deep);
+    margin:10px 0 12px;
+    line-height:1.25;
+  }
+  #screen-start p.lead{
+    font-size:15px;
+    color:#3E4C63;
+    line-height:1.6;
+    margin-bottom:22px;
+  }
+  .topic-chips{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:26px;
+  }
+  .chip{
+    font-size:13px;
+    font-weight:600;
+    padding:7px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--blue-pale);
+    color:var(--blue-deep);
+  }
+  .chip.red{background:var(--coral-pale); color:#B23B3B; border-color:#F6C9C9;}
+
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    border-radius:12px;
+    padding:14px 22px;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn:focus-visible{
+    outline:3px solid var(--blue-mid);
+    outline-offset:2px;
+  }
+  .btn-primary{
+    background:var(--blue-deep);
+    color:#fff;
+    width:100%;
+    box-shadow:0 10px 24px -10px rgba(18,58,99,0.6);
+  }
+  .btn-primary:hover{transform:translateY(-1px); background:#0E2C4C;}
+
+  /* ---------- QUIZ SCREEN ---------- */
+  #screen-quiz{display:none;}
+  .quiz-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .progress-track{
+    flex:1;
+    height:8px;
+    border-radius:999px;
+    background:var(--blue-pale);
+    margin-right:14px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--blue-mid),var(--green));
+    border-radius:999px;
+    transition:width .35s ease;
+    width:0%;
+  }
+  .score-pill{
+    font-size:13px;
+    font-weight:700;
+    color:var(--blue-deep);
+    background:var(--blue-pale);
+    padding:6px 12px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .topic-tag{
+    display:inline-block;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--blue-mid);
+    background:var(--blue-pale);
+    padding:5px 12px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  .topic-tag.tag-red{color:#B23B3B; background:var(--coral-pale);}
+
+  .question-text{
+    font-size:19px;
+    font-weight:600;
+    line-height:1.5;
+    margin:0 0 22px;
+    color:var(--ink);
+  }
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .opt{
+    text-align:left;
+    background:#FBFDFF;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .opt:hover:not(:disabled){border-color:var(--blue-mid); background:var(--blue-pale);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{
+    flex:0 0 auto;
+    width:24px;height:24px;
+    border-radius:50%;
+    background:var(--blue-pale);
+    color:var(--blue-deep);
+    font-size:12px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .opt.correct{
+    background:#EAF9F1;
+    border-color:var(--green);
+  }
+  .opt.correct .letter{background:var(--green); color:#fff;}
+  .opt.wrong{
+    background:var(--coral-pale);
+    border-color:var(--coral);
+  }
+  .opt.wrong .letter{background:var(--coral); color:#fff;}
+
+  .feedback{
+    margin-top:18px;
+    padding:16px 18px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.55;
+    display:none;
+  }
+  .feedback.show{display:block; animation:fadeIn .25s ease;}
+  .feedback.good{background:#EAF9F1; border:1px solid #BEE9D3; color:#1E6B4C;}
+  .feedback.bad{background:var(--coral-pale); border:1px solid #F6C9C9; color:#8A2E2E;}
+  .feedback .fb-title{font-weight:700; margin-bottom:4px; font-size:14px;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .next-row{margin-top:20px;}
+
+  /* ---------- RESULT SCREEN ---------- */
+  #screen-result{display:none; text-align:center;}
+  .result-badge{
+    width:78px;height:78px;
+    border-radius:50%;
+    margin:4px auto 18px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--blue-pale);
+    font-size:32px;
+  }
+  #screen-result .score-big{
+    font-size:44px;
+    font-weight:700;
+    color:var(--blue-deep);
+    margin:0;
+  }
+  #screen-result .score-sub{
+    color:#3E4C63;
+    font-size:14px;
+    margin:6px 0 22px;
+  }
+  .verdict{
+    font-size:15px;
+    font-weight:600;
+    color:var(--blue-deep);
+    background:var(--blue-pale);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:22px;
+    text-align:left;
+    line-height:1.55;
+  }
+  .btn-ghost{
+    background:transparent;
+    border:1.5px solid var(--line);
+    color:var(--blue-deep);
+    width:100%;
+    margin-top:10px;
+  }
+  .btn-ghost:hover{background:var(--blue-pale);}
+
+  .foot-note{
+    text-align:center;
+    font-size:12px;
+    color:#7186A0;
+    margin-top:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="ecg-wrap">
+    <svg viewBox="0 0 300 46" preserveAspectRatio="none">
+      <path id="ecgPath" class="ecg-line"
+        d="M0,23 L40,23 L54,23 L62,6 L72,40 L82,23 L96,23 L104,14 L112,23 L300,23" />
+    </svg>
+  </div>
+
+  <div class="card">
+
+    <!-- START -->
+    <div id="screen-start">
+      <div class="eyebrow">Ôn tập Sinh học · Bài 33</div>
+      <h1 class="title">Nhịp Sống Khỏe</h1>
+      <p class="lead">Một vòng trắc nghiệm ngắn về Máu &amp; Hệ tuần hoàn — kiểm tra hiểu biết của bạn về ba tình trạng bệnh lý thường gặp của hệ mạch máu.</p>
+      <div class="topic-chips">
+        <span class="chip">🩸 Thiếu máu</span>
+        <span class="chip">💢 Huyết áp cao</span>
+        <span class="chip red">🫀 Xơ vữa động mạch</span>
+      </div>
+      <button class="btn btn-primary" onclick="startQuiz()">Bắt đầu · 9 câu hỏi</button>
+      <p class="foot-note">Mỗi câu có 4 lựa chọn — chọn xong sẽ có giải thích ngay lập tức.</p>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="screen-quiz">
+      <div class="quiz-top">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="score-pill" id="scorePill">Đúng: 0</div>
+      </div>
+      <div class="topic-tag" id="topicTag">Chủ đề</div>
+      <p class="question-text" id="questionText">Câu hỏi</p>
+      <div class="options" id="optionsWrap"></div>
+      <div class="feedback" id="feedbackBox">
+        <div class="fb-title" id="feedbackTitle"></div>
+        <div id="feedbackText"></div>
+      </div>
+      <div class="next-row">
+        <button class="btn btn-primary" id="nextBtn" style="display:none;" onclick="nextQuestion()">Câu tiếp theo →</button>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="screen-result">
+      <div class="result-badge" id="resultBadge">🏅</div>
+      <p class="score-big"><span id="finalScore">0</span>/9</p>
+      <p class="score-sub">câu trả lời đúng</p>
+      <div class="verdict" id="verdictText"></div>
+      <button class="btn btn-primary" onclick="restartQuiz()">Làm lại từ đầu</button>
+    </div>
+
+  </div>
+
+  <p class="foot-note">Nội dung tham chiếu Bài 33 — Máu và hệ tuần hoàn của cơ thể người.</p>
+</div>
+
+<script>
+const QUESTION_BANK = [
+  // ---- THIẾU MÁU ----
+  {
+    topic: "Thiếu máu", tagClass: "",
+    q: "Thiếu máu là tình trạng gì của cơ thể?",
+    options: [
+      "Giảm số lượng hồng cầu hoặc lượng huyết sắc tố (hemoglobin) trong máu",
+      "Tăng số lượng hồng cầu quá mức bình thường",
+      "Giảm số lượng bạch cầu trong máu",
+      "Tăng nồng độ cholesterol trong máu"
+    ],
+    correct: 0,
+    explain: "Thiếu máu xảy ra khi số lượng hồng cầu hoặc huyết sắc tố giảm, làm giảm khả năng vận chuyển oxygen đi khắp cơ thể."
+  },
+  {
+    topic: "Thiếu máu", tagClass: "",
+    q: "Triệu chứng nào sau đây thường gặp ở người bị thiếu máu?",
+    options: [
+      "Sốt phát ban toàn thân",
+      "Mệt mỏi, da xanh xao, tim đập nhanh",
+      "Đau khớp dữ dội",
+      "Phù chân do giữ nước"
+    ],
+    correct: 1,
+    explain: "Do thiếu oxygen cung cấp cho các mô, người bị thiếu máu thường cảm thấy mệt mỏi, da niêm nhợt nhạt và tim phải đập nhanh hơn để bù đắp."
+  },
+  {
+    topic: "Thiếu máu", tagClass: "",
+    q: "Đâu là một trong những nguyên nhân phổ biến gây thiếu máu?",
+    options: [
+      "Ăn quá nhiều muối và đường",
+      "Hút thuốc lá thường xuyên",
+      "Thiếu sắt trong chế độ ăn hoặc do mất máu",
+      "Cholesterol trong máu quá cao"
+    ],
+    correct: 2,
+    explain: "Thiếu sắt (nguyên liệu tạo hemoglobin) và tình trạng mất máu (do chấn thương, kinh nguyệt kéo dài...) là các nguyên nhân thường gặp gây thiếu máu."
+  },
+
+  // ---- HUYẾT ÁP CAO ----
+  {
+    topic: "Huyết áp cao", tagClass: "tag-red",
+    q: "Chỉ số huyết áp bình thường ở người trưởng thành là bao nhiêu?",
+    options: [
+      "Tối đa 90–140 mmHg, tối thiểu 60–90 mmHg",
+      "Tối đa 150–180 mmHg, tối thiểu 100–120 mmHg",
+      "Tối đa 200 mmHg trở lên",
+      "Tối thiểu dưới 40 mmHg"
+    ],
+    correct: 0,
+    explain: "Huyết áp bình thường có chỉ số tối đa (tâm thu) từ 90 đến dưới 140 mmHg và chỉ số tối thiểu (tâm trương) từ 60 đến dưới 90 mmHg."
+  },
+  {
+    topic: "Huyết áp cao", tagClass: "tag-red",
+    q: "Nguyên nhân chính nào sau đây thường dẫn đến huyết áp cao?",
+    options: [
+      "Uống nhiều nước lọc mỗi ngày",
+      "Chế độ ăn nhiều muối, đường và chất béo",
+      "Ngủ đủ giấc, đúng giờ",
+      "Vận động thể dục thường xuyên"
+    ],
+    correct: 1,
+    explain: "Chế độ ăn nhiều muối, đường và thức ăn chứa nhiều chất béo là một trong những nguyên nhân chính khiến huyết áp tăng cao."
+  },
+  {
+    topic: "Huyết áp cao", tagClass: "tag-red",
+    q: "Huyết áp cao kéo dài có thể gây ra hậu quả gì cho mạch máu?",
+    options: [
+      "Làm tổn thương thành động mạch",
+      "Giúp thành mạch máu đàn hồi tốt hơn",
+      "Làm giảm cholesterol trong máu",
+      "Tăng số lượng hồng cầu"
+    ],
+    correct: 0,
+    explain: "Áp lực máu cao kéo dài gây tổn thương thành động mạch, tạo điều kiện cho các mảng xơ vữa hình thành và nhiều biến chứng tim mạch khác."
+  },
+
+  // ---- XƠ VỮA ĐỘNG MẠCH ----
+  {
+    topic: "Xơ vữa động mạch", tagClass: "",
+    q: "Cơ chế nào dẫn đến hình thành xơ vữa động mạch?",
+    options: [
+      "Cholesterol cao kết hợp với Ca²⁺ ngấm vào thành mạch",
+      "Hồng cầu bị vỡ hàng loạt trong lòng mạch",
+      "Bạch cầu tăng sinh quá mức",
+      "Huyết sắc tố giảm đột ngột"
+    ],
+    correct: 0,
+    explain: "Khi cholesterol trong máu cao, kết hợp với Ca²⁺ ngấm vào thành mạch, sẽ hình thành các mảng xơ vữa bám vào thành động mạch."
+  },
+  {
+    topic: "Xơ vữa động mạch", tagClass: "",
+    q: "Hậu quả nguy hiểm nào có thể xảy ra do xơ vữa động mạch?",
+    options: [
+      "Hẹp lòng mạch, dễ dẫn đến đột quỵ hoặc đau tim",
+      "Tăng khả năng vận chuyển oxygen",
+      "Tăng cường lưu thông máu đến các cơ quan",
+      "Giảm nguy cơ hình thành cục máu đông"
+    ],
+    correct: 0,
+    explain: "Mảng xơ vữa làm hẹp lòng mạch, cản trở dòng máu và dễ hình thành cục máu đông gây tắc mạch, dẫn đến đột quỵ hoặc đau tim."
+  },
+  {
+    topic: "Xơ vữa động mạch", tagClass: "",
+    q: "Biện pháp nào sau đây giúp phòng chống xơ vữa động mạch?",
+    options: [
+      "Hút thuốc lá thường xuyên để giảm căng thẳng",
+      "Hạn chế thuốc lá và tập thể dục đều đặn",
+      "Ăn nhiều thức ăn chứa chất béo bão hòa",
+      "Hạn chế vận động để bảo vệ tim"
+    ],
+    correct: 1,
+    explain: "Hạn chế hút thuốc lá và duy trì tập thể dục đều đặn giúp giảm cholesterol xấu, bảo vệ thành mạch và phòng ngừa xơ vữa động mạch."
+  }
+];
+
+let order = [];
+let current = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  order = shuffle(QUESTION_BANK.map((_, i) => i));
+  current = 0;
+  score = 0;
+  document.getElementById('screen-start').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const qData = QUESTION_BANK[order[current]];
+  document.getElementById('progressFill').style.width = ((current) / order.length * 100) + '%';
+  document.getElementById('scorePill').textContent = 'Đúng: ' + score;
+
+  const tag = document.getElementById('topicTag');
+  tag.textContent = qData.topic;
+  tag.className = 'topic-tag ' + qData.tagClass;
+
+  document.getElementById('questionText').textContent = (current + 1) + '. ' + qData.q;
+
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  qData.options.forEach((optText, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = '<span class="letter">' + letters[idx] + '</span><span>' + optText + '</span>';
+    btn.onclick = () => selectAnswer(idx);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedbackBox').className = 'feedback';
+  document.getElementById('nextBtn').style.display = 'none';
+  setEcgState('normal');
+}
+
+function selectAnswer(idx){
+  if(answered) return;
+  answered = true;
+  const qData = QUESTION_BANK[order[current]];
+  const opts = document.querySelectorAll('#optionsWrap .opt');
+  opts.forEach(o => o.disabled = true);
+
+  const isCorrect = idx === qData.correct;
+  if(isCorrect) score++;
+
+  opts[qData.correct].classList.add('correct');
+  if(!isCorrect) opts[idx].classList.add('wrong');
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback show ' + (isCorrect ? 'good' : 'bad');
+  document.getElementById('feedbackTitle').textContent = isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng.';
+  document.getElementById('feedbackText').textContent = 'Giải thích ngắn gọn: ' + qData.explain;
+
+  document.getElementById('scorePill').textContent = 'Đúng: ' + score;
+  document.getElementById('progressFill').style.width = ((current + 1) / order.length * 100) + '%';
+  document.getElementById('nextBtn').style.display = 'block';
+  document.getElementById('nextBtn').textContent = (current === order.length - 1) ? 'Xem kết quả →' : 'Câu tiếp theo →';
+
+  setEcgState(isCorrect ? 'good' : 'bad');
+}
+
+function setEcgState(state){
+  const line = document.getElementById('ecgPath');
+  line.classList.remove('pulse-good', 'pulse-bad');
+  if(state === 'good') line.classList.add('pulse-good');
+  if(state === 'bad') line.classList.add('pulse-bad');
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= order.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+  document.getElementById('finalScore').textContent = score;
+
+  const badge = document.getElementById('resultBadge');
+  const verdict = document.getElementById('verdictText');
+  const pct = score / order.length;
+
+  if(pct >= 0.85){
+    badge.textContent = '🏆';
+    verdict.textContent = 'Xuất sắc! Bạn nắm rất vững kiến thức về thiếu máu, huyết áp cao và xơ vữa động mạch — cả cơ chế, triệu chứng lẫn cách phòng chống.';
+  } else if(pct >= 0.6){
+    badge.textContent = '👍';
+    verdict.textContent = 'Khá tốt! Bạn đã hiểu phần lớn nội dung, hãy xem lại phần giải thích của những câu chưa đúng để nắm chắc hơn.';
+  } else {
+    badge.textContent = '📘';
+    verdict.textContent = 'Bạn nên ôn lại Bài 33 — đặc biệt là cơ chế xơ vữa động mạch và các chỉ số huyết áp bình thường — rồi thử lại nhé!';
+  }
+  setEcgState('normal');
+}
+
+function restartQuiz(){
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-start').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
